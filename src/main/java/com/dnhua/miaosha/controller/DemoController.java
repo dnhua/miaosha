@@ -3,6 +3,7 @@ package com.dnhua.miaosha.controller;
 import com.dnhua.miaosha.dao.IMiaoshaUserDao;
 import com.dnhua.miaosha.domain.MiaoshaUser;
 import com.dnhua.miaosha.domain.User;
+import com.dnhua.miaosha.rabbitmq.MQSender;
 import com.dnhua.miaosha.redis.RedisService;
 import com.dnhua.miaosha.redis.UserKey;
 import com.dnhua.miaosha.result.CodeMsg;
@@ -27,6 +28,9 @@ public class DemoController {
 
     @Autowired
     MiaoshaUserService miaoshaUserService;
+
+    @Autowired
+    MQSender sender;
 
     @RequestMapping("/")
     @ResponseBody
@@ -88,5 +92,33 @@ public class DemoController {
     public Result<MiaoshaUser> doLogin() {
         MiaoshaUser miaoshaUser = miaoshaUserService.getById(1);
         return Result.success(miaoshaUser);
+    }
+
+    @RequestMapping("/mq/header")
+    @ResponseBody
+    public Result<String> header() {
+		sender.sendHeader("hello,imooc");
+        return Result.success("Hello，world");
+    }
+
+	@RequestMapping("/mq/fanout")
+    @ResponseBody
+    public Result<String> fanout() {
+		sender.sendFanout("hello,imooc");
+        return Result.success("Hello，world");
+    }
+
+	@RequestMapping("/mq/topic")
+    @ResponseBody
+    public Result<String> topic() {
+		sender.sendTopic("hello,imooc");
+        return Result.success("Hello，world");
+    }
+
+	@RequestMapping("/mq")
+    @ResponseBody
+    public Result<String> mq() {
+		sender.send("hello,imooc");
+        return Result.success("Hello，world");
     }
 }
