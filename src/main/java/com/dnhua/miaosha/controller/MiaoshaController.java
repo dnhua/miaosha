@@ -1,5 +1,6 @@
 package com.dnhua.miaosha.controller;
 
+import com.dnhua.miaosha.access.AccessLimit;
 import com.dnhua.miaosha.domain.MiaoshaOrder;
 import com.dnhua.miaosha.domain.MiaoshaUser;
 import com.dnhua.miaosha.domain.OrderInfo;
@@ -134,7 +135,7 @@ public class MiaoshaController implements InitializingBean {
 //		return Result.success(orderInfo);
 	}
 
-//	@AccessLimit(seconds=5, maxCount=5, needLogin=true)
+	@AccessLimit(seconds=5, maxCount=5, needLogin=true)
 	@RequestMapping(value="/path", method=RequestMethod.GET)
 	@ResponseBody
 	public Result<String> getMiaoshaPath(HttpServletRequest request, MiaoshaUser user,
