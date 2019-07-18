@@ -14,14 +14,12 @@ import com.dnhua.miaosha.service.MiaoshaService;
 import com.dnhua.miaosha.service.MiaoshaUserService;
 import com.dnhua.miaosha.service.OrderService;
 import com.dnhua.miaosha.vo.GoodsVo;
+import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -76,13 +74,19 @@ public class MiaoshaController implements InitializingBean {
 //    	model.addAttribute("goods", goods);
 //        return "order_detail";
 //    }
-	@RequestMapping(value="/do_miaosha", method=RequestMethod.POST)
+	@RequestMapping(value="/{path}//do_miaosha", method=RequestMethod.POST)
 	@ResponseBody
 	public Result<Integer> miaosha(Model model,MiaoshaUser user,
-								   @RequestParam("goodsId")long goodsId) {
+								   @RequestParam("goodsId")long goodsId,
+								   @PathVariable("path") String path) {
 		model.addAttribute("user", user);
 		if(user == null) {
 			return Result.error(CodeMsg.SESSION_ERROR);
+		}
+		//验证path
+		boolean check = miaoshaService.checkPath(user, goodsId, path);
+		if(!check){
+			return Result.error(CodeMsg.REQUEST_ILLEGAL);
 		}
 		//内存标记，减少redis访问
 		boolean over = localOverMap.get(goodsId);
@@ -124,6 +128,21 @@ public class MiaoshaController implements InitializingBean {
 //		//减库存 下订单 写入秒杀订单
 //		OrderInfo orderInfo = miaoshaService.miaosha(user, goods);
 //		return Result.success(orderInfo);
+	}
+
+//	@AccessLimit(seconds=5, maxCount=5, needLogin=true)
+	@RequestMapping(value="/path", method=RequestMethod.GET)
+	@ResponseBody
+	public Result<String> getMiaoshaPath(HttpServletRequest request, MiaoshaUser user,
+										 @RequestParam("goodsId")long goodsId,
+										 @RequestParam(value="verifyCode", defaultValue="0")int verifyCode
+	) {
+		if(user == null) {
+			return Result.error(CodeMsg.SESSION_ERROR);
+		}
+
+		String path  = miaoshaService.createMiaoshaPath(user, goodsId);
+		return Result.success(path);
 	}
 
 	/**
